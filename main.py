@@ -3,12 +3,12 @@ import torch
 import torchaudio
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
-from TTS.api import TTS
+from TTS.utils.manage import ModelManager
 
-# /Users/egorgulido/Library/"Application Support"/tts/tts_models--multilingual--multi-dataset--xtts_v2
-tts = TTS('tts_models/multilingual/multi-dataset/xtts_v2', progress_bar=True)
-xtts_path = '/Users/egorgulido/Library/Application Support/tts/tts_models--multilingual--multi-dataset--xtts_v2'
+manager = ModelManager()
 print('Loading model...')
+model_name = 'tts_models/multilingual/multi-dataset/xtts_v2'
+xtts_path, _, _ = manager.download_model(model_name)
 config = XttsConfig()
 config.load_json(xtts_path + '/config.json')
 model = Xtts.init_from_config(config)
@@ -41,3 +41,5 @@ out = model.inference(
     temperature=0.7
 )
 torchaudio.save('output2.wav', torch.tensor(out['wav']).unsqueeze(0), 24000)
+
+print('DONE!')
