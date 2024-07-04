@@ -3,9 +3,10 @@ import torch
 import torchaudio
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
+from TTS.api import TTS
 
 # /Users/egorgulido/Library/"Application Support"/tts/tts_models--multilingual--multi-dataset--xtts_v2
-
+tts = TTS('tts_models/multilingual/multi-dataset/xtts_v2', progress_bar=True)
 xtts_path = '/Users/egorgulido/Library/Application Support/tts/tts_models--multilingual--multi-dataset--xtts_v2'
 print('Loading model...')
 config = XttsConfig()
