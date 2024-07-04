@@ -1,15 +1,42 @@
-from TTS.api import TTS
+import os
+import torch
+import torchaudio
+from TTS.tts.configs.xtts_config import XttsConfig
+from TTS.tts.models.xtts import Xtts
 
-# Model is located here on mac
-# /Users/egorgulido/Library/Application Support/tts/tts_models--multilingual--multi-dataset--xtts_v2
-print('Started loading model')
-tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2", gpu=False)
+# /Users/egorgulido/Library/"Application Support"/tts/tts_models--multilingual--multi-dataset--xtts_v2
 
-print('Model has been just installed\nStarting generating response')
+xtts_path = '/Users/egorgulido/Library/Application Support/tts/tts_models--multilingual--multi-dataset--xtts_v2'
+print('Loading model...')
+config = XttsConfig()
+config.load_json(xtts_path + '/config.json')
+model = Xtts.init_from_config(config)
+model.load_checkpoint(config,
+                      checkpoint_dir=xtts_path,
+                      use_deepspeed=True if torch.cuda.is_available() else False)
+if torch.cuda.is_available():
+    model.cuda()
 
-tts.tts_to_file(text="Trump received a Bachelor of Science in economics from the University of Pennsylvania in 1968. His father named him president of his real estate business in 1971. Trump renamed it the Trump Organization and reoriented the company toward building and renovating skyscrapers, hotels, casinos, and golf courses. After a series of business failures in the late twentieth century, he launched successful side ventures, mostly licensing the Trump name. From 2004 to 2015, he co-produced and hosted the reality television series The Apprentice. He and his businesses have been plaintiffs or defendants in more than 4,000 legal actions, including six business bankruptcies.",
-                file_path="output.wav",
-                speaker_wav='audio/caseoh.wav',
-                language="en")
+print('Computing speaker latents...')
+gpt_cond_latent, speaker_embedding = model.get_conditioning_latents(audio_path=['audio/yegor_en.wav'])
 
-print('DONE!')
+print('Inference...')
+print('First')
+out = model.inference(
+    'It took me quite a long time to develop a voice and now that I have it I am not going to be silent.',
+    'en',
+    gpt_cond_latent,
+    speaker_embedding,
+    temperature=0.7
+)
+torchaudio.save('output.wav', torch.tensor(out['wav']).unsqueeze(0), 24000)
+
+print('Second')
+out = model.inference(
+    'It doesn\'t bother me! But what\'s your name?',
+    'en',
+    gpt_cond_latent,
+    speaker_embedding,
+    temperature=0.7
+)
+torchaudio.save('output2.wav', torch.tensor(out['wav']).unsqueeze(0), 24000)
