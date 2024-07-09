@@ -1,3 +1,6 @@
 tts
 mobi
 bs4
+torch
+torchaudio
+pysbd
