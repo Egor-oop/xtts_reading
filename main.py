@@ -27,9 +27,7 @@ def get_chapters(filename: str) -> list[list[str]]:
     text = r.split(text)
     chapter_regex = re.compile(r'Chapter \d+', re.IGNORECASE)
     chapters = chapter_regex.split(text[0])[1:]
-    # chapters = [chapter.split('\n') for chapter in chapters]
     chapters = [segmenter.segment(chapter) for chapter in chapters]
-    # print(segmenter.segment(chapters[0][1]))
     return chapters
 
 
@@ -72,24 +70,24 @@ def synthesize_chapter(chapter, chapter_num, gpt_cond_latent, speaker_embedding,
             top_k=75,
             top_p=0.9
         )
-        wav_filepath = f'audio/temp/c{chapter_num+1}_p{i+1}.wav'
+        wav_filepath = f'audio/temp/c{chapter_num + 1}_p{i + 1}.wav'
         torchaudio.save(wav_filepath,
                         torch.tensor(out['wav']).unsqueeze(0),
                         24000)
         paragraphs.append(wav_filepath)
-    res_filepath = f'audio/result/chapter_{chapter_num+1}.wav'
+    res_filepath = f'audio/result/chapter_{chapter_num + 1}.wav'
     merge_wav_files(paragraphs, res_filepath)
     print(f'Finished chapter {chapter_num}')
 
 
-def main() -> None:
-    chapters = get_chapters("Harry Potter and the Sorcerer's Stone.mobi")
+def main(book_file: str, ref_files: list[str]) -> None:
+    chapters = get_chapters(book_file)
     model = init_model()
     print('Computing speaker latents...')
     gpt_cond_latent, speaker_embedding = model.get_conditioning_latents(
-        audio_path=['audio/reference/yegor_en.wav']
+        audio_path=ref_files
     )
-    
+
     for index, chapter in enumerate(chapters):
         synthesize_chapter(chapter,
                            index,
@@ -100,4 +98,5 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    main("Harry Potter and the Sorcerer's Stone.mobi",
+         ['audio/reference/yegor_en.wav'])
