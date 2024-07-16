@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
 from TTS.utils.manage import ModelManager
+from pathlib import Path
 
 segmenter = Segmenter(clean=True)
 
@@ -71,6 +72,7 @@ def synthesize_chapter(chapter, chapter_num, gpt_cond_latent, speaker_embedding,
             top_p=0.9
         )
         wav_filepath = f'audio/temp/c{chapter_num + 1}_p{i + 1}.wav'
+        Path(wav_filepath).parent.mkdir(parents=True, exist_ok=True)
         torchaudio.save(wav_filepath,
                         torch.tensor(out['wav']).unsqueeze(0),
                         24000)
